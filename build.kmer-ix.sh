@@ -71,3 +71,5 @@ rm  ${input_faa}.kmer.ix.0.sorted \
 BuildIndex2 -i ${input_faa}.kmer.ix.sorted -o ${input_faa}.kmer.ix1 -p ${input_faa}.kmer.ix2 -v -t8
 cd ..
 python database_size.py ${input_faa} ${index_dir}/${input_faa}.databasesize
+
+echo "Finished OK"
