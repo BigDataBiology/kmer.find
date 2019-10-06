@@ -18,7 +18,6 @@ import System.IO
 import Foreign.Storable
 import Foreign.Marshal.Alloc
 import Data.List
-import Control.Monad
 import Control.Arrow
 
 import           Data.Conduit.Algorithms.Async
@@ -47,7 +46,7 @@ parseArgs argv = foldl' (flip ($)) (CmdArgs "" "" "" False 1) flags
             ]
 
 
-writeOut :: (Storable a, MonadIO m) => Handle -> Handle -> C.Sink ([(Word32, Int)], VS.Vector a) m ()
+writeOut :: (Storable a, MonadIO m) => Handle -> Handle -> C.ConduitT ([(Word32, Int)], VS.Vector a) C.Void m ()
 writeOut hi hd = do
         write64 hi 0
         writeOut' 0 (0 :: Word64)
@@ -62,7 +61,7 @@ writeOut hi hd = do
         proc :: MonadIO m => Word32 -> Word64 -> [(Word32, Int)] -> m (Word32, Word64)
         proc !k !pos [] = return (k, pos)
         proc !k !pos t@((!k',!c):ks) = case compare k k' of
-            GT -> error ("SHOULD NEVER HAVE HAPPENED (" ++ show k ++ "< " ++ show k' ++")")
+            GT -> error ("SHOULD NEVER HAVE HAPPENED (" ++ show k ++ "< " ++ show k' ++"): input is assumed to be sorted")
             EQ -> proc k (pos + toEnum c) ks
             LT -> do
                 if k' > finalK
@@ -80,14 +79,19 @@ writeOut hi hd = do
         finalK :: Word32
         finalK = 2^(29 :: Word32)
 
+-- | input is a stream of <kmer, index> pairs
+--
+-- The indices are in the final order they will be output to `ix2`, so just split them out.
+-- Output is ([(kmer, count)], indices)
 splitVector :: VS.Vector Word32 -> ([(Word32, Int)], VS.Vector Word32)
-splitVector v = (map (head &&& length) . group . every2 . VS.toList $ v, VS.generate (n `div` 2) (\ix -> v VS.! (2 * ix + 1)))
+splitVector v = (map (head &&& length) . group . evenElements . VS.toList $ v, oddElements)
     where
         n = VS.length v
-        every2 :: [Word32] -> [Word32]
-        every2 [] = []
-        every2 [x] = [x]
-        every2 (x:_:xs) = x:every2 xs
+        oddElements = VS.generate (n `div` 2) (\ix -> v VS.! (2 * ix + 1))
+        evenElements :: [Word32] -> [Word32]
+        evenElements [] = []
+        evenElements [x] = [x]
+        evenElements (x:_:xs) = x:evenElements xs
 
 main :: IO ()
 main = do
