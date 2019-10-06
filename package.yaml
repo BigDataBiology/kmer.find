@@ -36,6 +36,3 @@ executables:
   Query:
     main: Query.hs
     other-modules: []
-  BuildIndex2:
-    main: BuildIndex2.hs
-    other-modules: []
