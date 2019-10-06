@@ -29,9 +29,10 @@ import Data.BioConduit
 splitTopV :: VS.Vector Word32 -> [VS.Vector Word32]
 splitTopV v = [get k | k <- [0..15]]
     where
-        nelem = VS.length v `div` 2
-        ixs = VS.fromList [v VS.! (i*2) `shiftR` 24 | i <- [0..nelem - 1]]
-        get k = VS.ifilter (\ix _ -> ixs VS.! (ix `div` 2) == k) v
+        get k = VS.ifilter (\ix e ->
+                                (if ix `mod` 2 == 0
+                                    then e
+                                    else (v VS.! (ix - 1))) `shiftR` 24 == k) v
 
 data CmdArgs = CmdArgs
     { ifileArg :: FilePath
@@ -54,6 +55,7 @@ parseArgs argv = foldl' (flip ($)) (CmdArgs "" "" False 1) flags
             ]
 
 
+writeToSplits :: (MonadIO m, Storable a) => [Char] -> C.ConduitT [VS.Vector a] C.Void m ()
 writeToSplits base = do
         hs <- liftIO $ sequence [openFile (base ++ "."++show i) WriteMode | i <- [0 :: Int ..15]]
         writeToSplits' hs
@@ -64,8 +66,9 @@ writeToSplits base = do
             hPutBuf h p (sizeOf (VS.head v) * VS.length v)
 
 concatV :: V.Vector [VS.Vector Word32] -> [VS.Vector Word32]
-concatV v = [(VS.concat . (map (!! i)) . V.toList $ v) | i <- [0..15]]
+concatV v = [(VS.concat . V.toList . V.map (!! i) $ v) | i <- [0..15]]
 
+encodeKMERS' :: Int -> Fasta -> VS.Vector Word32
 encodeKMERS' n fa = let ks = encodeKMERS fa
                         in VS.generate (VS.length ks * 2) (\ix -> if ix `mod` 2 == 0 then ks VS.! (ix `div` 2) else toEnum n)
 
