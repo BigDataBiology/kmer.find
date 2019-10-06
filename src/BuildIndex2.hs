@@ -48,17 +48,17 @@ parseArgs argv = foldl' (flip ($)) (CmdArgs "" "" "" False 1) flags
 
 writeOut :: (Storable a, MonadIO m) => Handle -> Handle -> C.ConduitT ([(Word32, Int)], VS.Vector a) C.Void m ()
 writeOut hi hd = do
-        write64 hi 0
+        liftIO $ write64 hi 0
         writeOut' 0 (0 :: Word64)
     where
         writeOut' k pos = C.await >>= \case
             Just (ix, d) -> do
                 liftIO $ writeV hd d
-                (k', pos') <- proc k pos ix
+                (k', pos') <- liftIO $ proc k pos ix
                 writeOut' k' pos'
 
-            Nothing -> void $ proc k pos [(finalK, 0)]
-        proc :: MonadIO m => Word32 -> Word64 -> [(Word32, Int)] -> m (Word32, Word64)
+            Nothing -> void $ liftIO $ proc k pos [(finalK, 0)]
+        proc :: Word32 -> Word64 -> [(Word32, Int)] -> IO (Word32, Word64)
         proc !k !pos [] = return (k, pos)
         proc !k !pos t@((!k',!c):ks) = case compare k k' of
             GT -> error ("SHOULD NEVER HAVE HAPPENED (" ++ show k ++ "< " ++ show k' ++"): input is assumed to be sorted")
@@ -72,8 +72,8 @@ writeOut hi hd = do
 
         writeV h v = VS.unsafeWith v $ \p ->
             hPutBuf h p (sizeOf (VS.head v) * VS.length v)
-        write64 :: MonadIO m => Handle -> Word64 -> m ()
-        write64 h val = liftIO . alloca $ \p -> do
+        write64 :: Handle -> Word64 -> IO ()
+        write64 h val = alloca $ \p -> do
                 poke p val
                 hPutBuf h p (sizeOf val)
         finalK :: Word32
