@@ -20,7 +20,7 @@ fi
 
 mkdir ${index_dir}
 echo "starting..."
-EncodeKmers -i ${input_faa} -o ${index_dir}/${input_faa}.kmer.ix -t8
+python fasta_pre_process.py ${input_faa} /dev/stdout | encode-kmers ${index_dir}/${input_faa}.kmer.ix
 
 echo "Encoding kmers done"
 python extract-names32.py ${input_faa} ${index_dir}/${input_faa}.names.32
