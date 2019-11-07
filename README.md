@@ -21,4 +21,9 @@ To query the index, run
 
 python query.py test.faa query.faa
 
+## Authors
+
+- Luis Pedro Coelho
+- Longhao Jia (for computing e-values)
+
 License: MIT
