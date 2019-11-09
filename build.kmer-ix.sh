@@ -49,7 +49,7 @@ cat ${input_faa}.kmer.ix.0.sorted \
     ${input_faa}.kmer.ix.13.sorted \
     ${input_faa}.kmer.ix.14.sorted \
     ${input_faa}.kmer.ix.15.sorted \
-        > ${input_faa}.kmer.ix.sorted
+        | build-index2 /dev/stdin ${input_faa}.kmer.ix1 ${input_faa}.kmer.ix2
 
 rm  ${input_faa}.kmer.ix.0.sorted \
     ${input_faa}.kmer.ix.1.sorted \
@@ -68,7 +68,6 @@ rm  ${input_faa}.kmer.ix.0.sorted \
     ${input_faa}.kmer.ix.14.sorted \
     ${input_faa}.kmer.ix.15.sorted \
 
-build-index2 ${input_faa}.kmer.ix.sorted ${input_faa}.kmer.ix1 ${input_faa}.kmer.ix2
 cd ..
 python database_size.py ${input_faa} ${index_dir}/${input_faa}.databasesize
 
