@@ -27,8 +27,6 @@ for fa in skbio.io.read(query_fname, format='fasta'):
 
 
 headers = GetNames(f'{index_base}/kmer.index/{index_fname}.names.32')
-print("Loaded headers")
-
 index = IndexedFastaReader(path.join(index_base, index_fname))
 
 data = subprocess.Popen(['Query',
