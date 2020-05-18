@@ -59,7 +59,11 @@ for line in chain(data.stdout, [b'END']):
             break
         active = line[1:].strip()
         fa = Qs[active]
-        sw = skbio.alignment.StripedSmithWaterman(fa, substitution_matrix=blosum62,gap_open_penalty=11,gap_extend_penalty=1)
+        sw = skbio.alignment.StripedSmithWaterman(fa,
+                    substitution_matrix=blosum62,
+                    gap_open_penalty=11,
+                    gap_extend_penalty=1,
+                    protein=True)
     else:
         name = headers.get(int(line.strip()))
         seq = index.get(name).decode('ascii')
