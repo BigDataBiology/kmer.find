@@ -38,16 +38,11 @@ data = subprocess.Popen(['Query',
 
 matches = []
 
-# These are the values from Altschul, S. F., & Gish, W. (1996). [27] Local
-# alignment statistics. Computer Methods for Macromolecular Sequence Analysis,
-# 460–480. doi:10.1016/s0076-6879(96)66029-7 
-#
-# for gapped alignments with gap-costs 12/1 and BLOSUM62.
-# This is the values for the linear model, which results in the most
-# conservative estimates (higher e-values)
+# These are the values from Diamond
+# Matrix=BLOSUM62 Lambda=0.267 K=0.041 Penalties=11/1
 
-lamda =	 0.261                        # λ is the Gumble distribution constant
-K = 0.026                             # K is a constant associated with the scoring matrix used.
+lamda =	 0.267  # λ is the Gumble distribution constant
+K = 0.041       # K is a constant associated with the scoring matrix used.
 database_size = 0
 for line in open(f'{index_base}/kmer.index/{index_fname}.databasesize'):
     database_size = database_size + int(line.strip())  #the size of the database(m)
@@ -70,7 +65,7 @@ for line in chain(data.stdout, [b'END']):
         fa = Qs[active]
         sw = skbio.alignment.StripedSmithWaterman(fa,
                     substitution_matrix=blosum62,
-                    gap_open_penalty=12,
+                    gap_open_penalty=11,
                     gap_extend_penalty=1,
                     protein=True)
     else:
